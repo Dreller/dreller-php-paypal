@@ -53,8 +53,8 @@ class DrellerPayPal{
  * Catch a value from an Array.
  * @param string $valueName   Name of item to look for.
  * @param array $array        Name of array that contains datas.
- * @param variant $returning  Value to return if item is not in the array.
- * @return type
+ * @param mixed $returning  Value to return if item is not in the array.
+ * @return mixed
  */
 protected function catchInArray($valueName, &$array, $returning = ''){
     $tmp = $returning;
@@ -62,6 +62,15 @@ protected function catchInArray($valueName, &$array, $returning = ''){
         $tmp = trim($array[$valueName]);
     }
     return $tmp;
+}
+
+/**
+ * Send cURL Call to PayPal and return the result
+ * @param string $url       URL to call
+ * @return mixed
+ */
+protected function callPayPal($url){
+  # TODO
 }
 
 
@@ -121,6 +130,27 @@ protected function catchInArray($valueName, &$array, $returning = ''){
   public function transPayPalStatus($code){
     return $this->ppStatus[$code];
   }
+
+## Functions for Orders #######################################################
+
+public function getOrderDetails($orderID = ''){
+
+  $ch = curl_init();
+  curl_setopt($ch, CURLOPT_URL, $this->apiURL . 'v2/checkout/orders/' . $orderID);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+  $headers = array();
+  $headers[] = 'Content-Type: application/json';
+  $headers[] = 'Authorization: Bearer ' . $this->myToken;
+  curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+  $result = curl_exec($ch);
+  if (curl_errno($ch)) {
+      echo 'Error:' . curl_error($ch);
+  }
+  curl_close($ch);
+  return json_decode($result, true);
+}
 
 
 }
