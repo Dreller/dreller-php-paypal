@@ -69,11 +69,19 @@ protected function catchInArray($valueName, &$array, $returning = ''){
  * @param string $url       URL to call
  * @return mixed
  */
-protected function callPayPal($url){
+protected function callPayPal($url, $postJSON = ''){
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+
+    if( $postJSON != '' ){
+      if( is_array($postJSON) ){
+        $postJSON = json_encode($postJSON);
+      }
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $postJSON);
+    }
+
     $headers = array();
     $headers[] = 'Content-Type: application/json';
     $headers[] = 'Authorization: Bearer ' . $this->myToken;
@@ -133,6 +141,18 @@ public function getOrderDetails($orderID = ''){
   $url = $this->apiURL . 'v2/checkout/orders/' . $orderID;
   return $this->callPayPal($url);
 }
+
+
+## Functions for Trackers #####################################################
+
+public function addTracking($options){
+  $transaction    = $this->catchInArray('transaction', $options, 0);
+  $tracking_no    = $this->catchInArray('tracking', $options, '');
+  $status         = $this->catchInArray('status', $options, '');
+  $carrier        = $this->catchInArray('carrier', $options, '');
+  $notify         = $this->catchInArray('notify', $options, false);
+}
+
 
 
 }
