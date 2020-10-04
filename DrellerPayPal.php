@@ -19,11 +19,11 @@ class DrellerPayPal{
 # be used for further functions.
   public function __construct($cID = '', $cSec = '', $sandbox = false){
     # Establish the base URL for APIs Calls.
-    $this->apiURL = 'https://api'.($sandbox != false?'.sandbox':'').'.paypal.com/v1/';
+    $this->apiURL = 'https://api'.($sandbox != false?'.sandbox':'').'.paypal.com/';
 
     # Call PayPal and ask for a Bearer Token
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $this->apiURL.'oauth2/token');
+    curl_setopt($ch, CURLOPT_URL, $this->apiURL.'v1/oauth2/token');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_POSTFIELDS, "grant_type=client_credentials");
@@ -85,7 +85,7 @@ protected function catchInArray($valueName, &$array, $returning = ''){
     $from   = $this->catchInArray('from', $options, date('Y-m-d', strtotime('-30 days')));
     $to     = $this->catchInArray('to', $options, date('Y-m-d'));
 
-    $url    = $this->apiURL . 'reporting/transactions?';
+    $url    = $this->apiURL . 'v1/reporting/transactions?';
     $url   .= 'start_date=' . $from . 'T00:00:01-0000';
     $url   .= '&end_date=' . $to . 'T23:59:59-0000';
     $url   .= '&fields=transaction_info';
@@ -121,9 +121,6 @@ protected function catchInArray($valueName, &$array, $returning = ''){
   public function transPayPalStatus($code){
     return $this->ppStatus[$code];
   }
-
-
-
 
 
 }
