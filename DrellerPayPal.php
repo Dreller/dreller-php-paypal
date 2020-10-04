@@ -95,7 +95,6 @@ protected function callPayPal($url, $postJSON = ''){
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
 
     if( $postJSON != '' ){
       if( is_array($postJSON) ){
@@ -103,6 +102,8 @@ protected function callPayPal($url, $postJSON = ''){
       }
       curl_setopt($ch, CURLOPT_POST, 1);
       curl_setopt($ch, CURLOPT_POSTFIELDS, $postJSON);
+    }else{
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
     }
 
     $headers = array();
