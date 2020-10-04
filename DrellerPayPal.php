@@ -65,6 +65,28 @@ protected function catchInArray($valueName, &$array, $returning = ''){
 }
 
 /**
+ * Insert value in Array if value is not the one by default.
+ * @param array   $array      Name of array to refer to.
+ * @param string  $name       Name of value.
+ * @param mixed   $value      Value.
+ * @param mixed   $default    Default value handled by the handler.
+ */
+protected function pushInArray(&$array, $name, $value, $default = ''){
+  if( $value != $default ){
+    $array[$name] = $value;
+  }
+}
+
+/**
+ * Returns the date in Internet Format, as required by PayPal.
+ * @return string
+ */
+protected function dateInternet(){
+  return date(DATE_ISO8601);
+}
+
+
+/**
  * Send cURL Call to PayPal and return the result
  * @param string $url       URL to call
  * @return mixed
@@ -79,6 +101,7 @@ protected function callPayPal($url, $postJSON = ''){
       if( is_array($postJSON) ){
         $postJSON = json_encode($postJSON);
       }
+      curl_setopt($ch, CURLOPT_POST, 1);
       curl_setopt($ch, CURLOPT_POSTFIELDS, $postJSON);
     }
 
@@ -146,11 +169,28 @@ public function getOrderDetails($orderID = ''){
 ## Functions for Trackers #####################################################
 
 public function addTracking($options){
+
   $transaction    = $this->catchInArray('transaction', $options, 0);
   $tracking_no    = $this->catchInArray('tracking', $options, '');
-  $status         = $this->catchInArray('status', $options, '');
-  $carrier        = $this->catchInArray('carrier', $options, '');
+  $status         = $this->catchInArray('status', $options, 'SHIPPED');
+  $carrier        = $this->catchInArray('carrier', $options, 'CANADA_POST');
   $notify         = $this->catchInArray('notify', $options, false);
+
+  # Info: Tracking Statuses: SHIPPED - ON_HOLD - DELIVERED - CANCELLED
+  # Info: Carriers: https://developer.paypal.com/docs/tracking/reference/carriers/
+
+  $myArray['trackers'][0] = Array(
+    'transaction_id'        => $transaction,
+    'tracking_number'       => $tracking_no,
+    'tracking_number_type'  => 'CARRIER_PROVIDED',
+    'status'                => $status,
+    'carrier'               => $carrier,
+    'notify_buyer'          => $notify,
+    'last_updated_time'     => $this->dateInternet()
+  );
+
+  $url = $this->apiURL . "v1/shipping/trackers-batch";
+  return $this->callPayPal($url, $myArray);
 }
 
 
