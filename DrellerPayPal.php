@@ -70,7 +70,20 @@ protected function catchInArray($valueName, &$array, $returning = ''){
  * @return mixed
  */
 protected function callPayPal($url){
-  # TODO
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
+    $headers = array();
+    $headers[] = 'Content-Type: application/json';
+    $headers[] = 'Authorization: Bearer ' . $this->myToken;
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    $result = curl_exec($ch);
+    if (curl_errno($ch)) {
+        return 'Error:' . curl_error($ch);
+    }
+    curl_close($ch);
+    return json_decode($result, true);
 }
 
 
@@ -101,25 +114,7 @@ protected function callPayPal($url){
     $url   .= '&page_size=100';
     $url   .= '&page=1';
 
-    $ch     = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
-    $headers = array();
-    $headers[] = 'Content-Type: application/json';
-    $headers[] = 'Authorization: Bearer ' . $this->myToken;
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-    $result = curl_exec($ch);
-    if (curl_errno($ch)) {
-        echo 'Error:' . curl_error($ch);
-    }
-    curl_close($ch);
-    return json_decode($result, true);
-    # Use the result as an Array, like this:
-    # foreach( $var['transaction_details'] as $trans ){
-    #   $tran = $trans['transaction_info'];
-    #   $transactionID = $tran['transaction_id'];
-    # }
+    return $this->callPayPal($url);
   }
 
   public function transPayPalEvent($code){
@@ -134,22 +129,9 @@ protected function callPayPal($url){
 ## Functions for Orders #######################################################
 
 public function getOrderDetails($orderID = ''){
-
   $ch = curl_init();
-  curl_setopt($ch, CURLOPT_URL, $this->apiURL . 'v2/checkout/orders/' . $orderID);
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-  curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
-  $headers = array();
-  $headers[] = 'Content-Type: application/json';
-  $headers[] = 'Authorization: Bearer ' . $this->myToken;
-  curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-
-  $result = curl_exec($ch);
-  if (curl_errno($ch)) {
-      echo 'Error:' . curl_error($ch);
-  }
-  curl_close($ch);
-  return json_decode($result, true);
+  $url = $this->apiURL . 'v2/checkout/orders/' . $orderID;
+  return $this->callPayPal($url);
 }
 
 
