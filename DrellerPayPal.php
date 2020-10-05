@@ -91,32 +91,44 @@ protected function dateInternet(){
  * @param string $url       URL to call
  * @return mixed
  */
-protected function callPayPal($url, $postJSON = ''){
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
-
-    if( $postJSON != '' ){
-      if( is_array($postJSON) ){
-        $postJSON = json_encode($postJSON);
-      }
-      curl_setopt($ch, CURLOPT_POST, 1);
-      curl_setopt($ch, CURLOPT_POSTFIELDS, $postJSON);
-    }
-
-    $headers = array();
-    $headers[] = 'Content-Type: application/json';
-    $headers[] = 'Authorization: Bearer ' . $this->myToken;
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-    $result = curl_exec($ch);
-    if (curl_errno($ch)) {
-        return 'Error:' . curl_error($ch);
-    }
-    curl_close($ch);
-    return json_decode($result, true);
+protected function getPayPal($url){
+  return $this->callPayPal($url);
 }
 
+protected function postPayPal($url, $data){
+  return $this->callPayPal($url, $data, 'POST');
+}
+
+protected function putPayPal($url, $data){
+  return $this->callPayPal($url, $data, 'PUT');
+}
+
+
+protected function callPayPal($url, $data = '', $type = 'GET'){
+  $ch = curl_init();
+  curl_setopt($ch, CURLOPT_URL, $url);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $type);
+  curl_setopt($ch, CURLOPT_POST, ($type=='POST'?1:0));
+
+  if( $data != '' ){
+    if( is_array($data) ){
+      $data = json_encode($data);
+    }
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+  }
+
+  $headers = array();
+  $headers[] = 'Content-Type: application/json';
+  $headers[] = 'Authorization: Bearer ' . $this->myToken;
+  curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+  $result = curl_exec($ch);
+  if (curl_errno($ch)) {
+      return 'Error:' . curl_error($ch);
+  }
+  curl_close($ch);
+  return json_decode($result, true);
+}
 
 ## Functions for Transactions Lookups ##########################################
 
@@ -145,7 +157,7 @@ protected function callPayPal($url, $postJSON = ''){
     $url   .= '&page_size=100';
     $url   .= '&page=1';
 
-    return $this->callPayPal($url);
+    return $this->getPayPal($url);
   }
 
   public function transPayPalEvent($code){
@@ -162,7 +174,7 @@ protected function callPayPal($url, $postJSON = ''){
 public function getOrderDetails($orderID = ''){
   $ch = curl_init();
   $url = $this->apiURL . 'v2/checkout/orders/' . $orderID;
-  return $this->callPayPal($url);
+  return $this->getPayPal($url);
 }
 
 
@@ -190,7 +202,17 @@ public function addTracking($options){
   );
 
   $url = $this->apiURL . "v1/shipping/trackers-batch";
-  return $this->callPayPal($url, $myArray);
+  return $this->postPayPal($url, $myArray);
+}
+
+public function updTracking($transaction, $tracking, $newStatus){
+  $myArray = Array(
+    'transaction_id'  => $transaction,
+    'status'          => $newStatus
+  );
+  
+  $url = $this->apiURL . "v1/shipping/trackers/" . $transaction . "-" . $tracking;
+  return $this->putPayPal($url, $myArray);
 }
 
 
