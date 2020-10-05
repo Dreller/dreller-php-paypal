@@ -181,7 +181,6 @@ public function getOrderDetails($orderID = ''){
 ## Functions for Trackers #####################################################
 
 public function addTracking($options){
-
   $transaction    = $this->catchInArray('transaction', $options, 0);
   $tracking_no    = $this->catchInArray('tracking', $options, '');
   $status         = $this->catchInArray('status', $options, 'SHIPPED');
